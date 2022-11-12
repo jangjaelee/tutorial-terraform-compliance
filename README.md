@@ -285,7 +285,6 @@ Feature: Test tagging compliance  # /mnt/c/Users/이장재/Desktop/terraform/ter
 8 scenarios (6 passed, 1 failed, 1 skipped)
 27 steps (21 passed, 1 failed, 2 skipped)
 Run 1668277974 finished within a moment
- (TF:default)(⎈ |rancher-desktop:default)
 ```
 
 ## Step 4. terraform apply
