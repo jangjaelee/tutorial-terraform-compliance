@@ -8,7 +8,7 @@
 
 ---
 
-![Terraform-Compliance.png](Terraform%20Compliance%201bfde17220af490b861d39588ea389df/Terraform-Compliance.png)
+![Terraform-Compliance.png](https://raw.githubusercontent.com/jangjaelee/tutorial-terraform-compliance/main/Terraform-Compliance.png)
 
 ## What is Terraform Compliance?
 
@@ -310,8 +310,6 @@ $ terraform apply
 ## Reference
 
 - **[Implement compliance testing with Terraform and Azure](https://learn.microsoft.com/en-us/azure/developer/terraform/best-practices-compliance-testing)**
-- **[Trusting in your IaC -Terraform-Compliance](https://dev.to/aws-builders/trusting-in-your-iac-terraform-compliance-4cch)**
-- ****[Terraform Compliance, starting](https://medium.com/@agferronato/terraform-compliance-starting-cbb368e65dc6)****
 - ****[Announcing policy guardrails for Terraform on Google Cloud CLI preview](https://cloud.google.com/blog/products/compliance/google-cloud-cli-terraform-validation-preview?hl=en)****
 - ****[Enforce Policy with Sentinel](https://developer.hashicorp.com/terraform/tutorials/policy)****
 - [**TFLint**](https://github.com/terraform-linters/tflint)
