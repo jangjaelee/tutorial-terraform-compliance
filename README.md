@@ -1,74 +1,63 @@
-# Tutorial: Terraform Compliance Testing
+# Terraform Compliance
 
-Compliance testing, also known as Conformance testing, is a nonfunctional testing technique which is done to validate whether the system developed meets the organization’s prescribed standards or not. Most software teams do an analysis to check that the standards are properly enforced and implemented. Often working simultaneously to improve the standards, which will, in turn, lead to better quality.
+---
 
-> Note: this sample is used as the support for the [Terraform on Azure - Compliance testing](https://docs.microsoft.com/azure/developer/terraform/best-practices-compliance-testing) documentation.
+2022.011. 이장재    📧 cine0831@gmail.com     📂 [https://github.com/jangjaelee](https://github.com/jangjaelee)    📒 [http://www.awx.kr](http://www.awx.kr)
 
-## When to use Compliance Testing
+---
 
-Compliance testing is performed to ensure the compliance of the deliverables of each phase of the development lifecycle. If you you have to enforce sufficient tests to validate the degree of compliance to the methodology and identify the violators. 
-It is important that the compliance check should be made right from the inception of the project than at the later stage because it would be difficult to correct the application when the requirement itself is not adequately documented.
+---
 
-## How to do a compliance check
+![Terraform-Compliance.png](Terraform%20Compliance%201bfde17220af490b861d39588ea389df/Terraform-Compliance.png)
 
-Doing Compliance checks is quite straight forward. A set of standards and procedures are developed and documented for each phase of the development lifecycle. Deliverables of each phase need to compare against the standards and find out the gaps. Compliance testing is basically done through the inspection process and the outcome of the review process should be well documented.
+## What is Terraform Compliance?
 
-Let's apply that to a [Terraform](https://terraform.io) driven infrastructure by giving a more specific example: 
+Terraform-compliance는 terraform에 의해 정의된 인프라의 규정 준수를 검증하는 프레임워크이며, 이는 인프라를 검증하기 위해 함께 작동하는 부정적인 테스트 및 BDD를 기반으로 합니다. 이 게시물은 이 프레임워크를 구현하고 IaC를 배포하는 데 사용되는 DevOps 파이프라인에 추가하는 방법을 보여줍니다
 
-One of the problems you might have in your team is environments getting hosed when different people apply changes. One person works on a change and applies resources e.g. a VM to a test environment. Then someone else applies a different version of the code from their own machine, provision another version of that VM. Things get confusing and messy. 
+- Terraform IaaS(Infrastructure-as-code)를 위한 경량, 보안 및 규정 준수에 중점을 둔 테스트 프레임워크입니다.
+- 코드로서의 인프라에 대한 부정적인 테스트 기능을 활성화합니다.
+- 구현된 코드가 보안 요구 사항을 충족하는지 확인합니다.
+- 표준 규정을 사용자 정의할 수 있습니다.
 
-An obvious response could be to call out a policy to require tags on resources where applicable and add a `role` and `creator` tag to the resource that is deployed. [Terraform-compliance](https://terraform-compliance.com) is a tool that helps you with that. It mainly focuses on negative testing instead of having fully-fledged functional tests that are mostly used for proving a component of code is performing properly.
+---
 
-Fortunately, `terraform` is a marvellous abstraction layer for any API that creates/updates/destroys entities. `Terraform` also provides the capability to ensure everything is up-to-date between the local configuration and the remote API(s) responses. Since `terraform` is mostly used against Cloud APIs we still miss a way to ensure the code deployed against the infrastructure must follow specific policies - like HashiCorp currently provides with [Sentinel](https://docs.hashicorp.com/sentinel/intro/what/) for Enterprise Products. `Terraform-compliance` is providing a similar functionality only for terraform while it is free-to-use and it is Open Source.
+## Requirements
 
-A sample compliance policy for the issue mentioned could be like this: `if you are working with Azure, you should not create a resource, without having any tags`.`Terraform-compliance` provides a test framework to create these policies that will be executed against your terraform plan file in a context where both developers and security teams can understand easily while reading it, by applying [Behaviour Driven Development](https://en.wikipedia.org/wiki/Behavior-driven_development) principles.
+- Python 3.x
+- Terraform 0.12+
 
-## Get the Idea 
+---
 
-Going back to the example, the above will be translated into a BDD Feature and Scenario, as also seen in below:
+## **How does this work?**
 
-```Cucumber
-if you are working with Azure, you should not create a resource, without having any tags
+Terraform-compliance는 AWS S3 Bucket에서 활성화된 암호화, 태그가 잘 지정된 리소스 등과 같이 인프라에 반드시 있어야 하는 기능을 정의하는 정책을 사용합니다. 이러한 정책은 Terraform이 생성하는 계획에 대해 실행되고 **행동 주도 개발(BDD)** 원칙을 사용하여 정의합니다.
+
+또한, 클라우드의 상세한 Billing report를 보기 위해서는 각 클라우드 제공자에서 요구하는 비용 할당 태그가 필요한데 이때 BDD원칙을 사용하여 누락되는 태그가 없게 규정을 준수할 수 있습니다.
+
+정책을 정의하기 위해 언어(language)로 영어를 사용합니다.
+
+Terraform으로 작업하기위해 파일 확장자로 feature 사용하고 평가하려는 시나리오가 포함된 BDD 원칙을 사용하여 정책이 정의된 파일을 만들어 사용합니다.
+
+파일의 구조는 다음과 같습니다.
+
+- **Feature** : 검증할 사항에 대한 요약
+- **Senario / Senario Outline** : 실행할 테스트를 정의하는 시나리오 입니다. 여기에는 아래의 BDD 지시문이 포함됩니다.
+    - **Given** : 확인하려는 리소스 또는 데이터의 목록이 될 수 있는 context를 정의하는데 사용되며 모든 시나리오를 정의하는 첫 번째 단계입니다.
+    - **When** : 예를 들어, 정의된 context가 모든 S3 Bucket을 평가한다고 말하면 위에서 정의한 context를 필터링합니다. 예를 들어 WHEN을 사용하여 tag로 필터링할 수 있습니다. 조건이 통과하지 못하면 실패 대신 다음 줄로 건너뜁니다.
+    - **Then** : WHEN과 유사한 기능을 가지고 있지만 조건이 통과하지 않으면 시나리오가 실패합니다.
+    - **And** : 시나리오에 추가 조건을 정의하는 데 사용되며 이는 선택적 명령문입니다.
+- **Steps** : 테스트의 성공 여부를 확인하는 데 필요한 작업을 실제로 실행하는 기능 테스트입니다.
+
+정책파일 예시는 다음과 같습니다.
+
 ```
+Feature: Test tagging compliance
 
-translates into:
+Scenario: Ensure all resources have tags
+    Given I have resource that supports tags defined
+    Then it must contain tags
+    And its value must not be null
 
-```Cucumber
-Given I have resources that supports tags defined
-Then it must contain tags
-And its value must not be null
-```
-
-Further specific configurations are coming from the terraform code, as shown below ;
-
-```hcl
-resource "random_uuid" "uuid" {}
-
-resource "azurerm_resource_group" "rg" {
-  name     = "rg-hello-tf-${random_uuid.uuid.result}"
-  location = var.location
-
-  tags = {
-    environment = "dev"
-    application = "Azure Compliance"
-  } 
-}
-```
-
-
-The first policy could be written as a [BDD Feature Scenario](https://gherkin.io/docs/gherkin/reference/) like this: 
-
-```Cucumber
-Feature: Test tagging compliance  # /target/src/features/tagging.feature
-    Scenario: Ensure all resources have tags
-        Given I have resource that supports tags defined
-        Then it must contain tags
-        And its value must not be null
-```
-
-Following a second scenario test for a specific tag
-
-```Cucumber
 Scenario Outline: Ensure that specific tags are defined
     Given I have resource that supports tags defined
     When it has tags
@@ -77,64 +66,262 @@ Scenario Outline: Ensure that specific tags are defined
 
     Examples:
       | tags        | value              |
-      | Creator     | .+                 |
-      | Application | .+                 |
-      | Role        | .+                 |
+      | Name        | .+                 |
       | Environment | ^(prod\|uat\|dev)$ |
 ```
 
-## How-to run this example
+각 BDD directive(지시문)에는 더 많은 기능이 있으며, terraform-compliance의 [BDD Reference](https://terraform-compliance.com/pages/bdd-references/)에서 확인할 수 있습니다. 
 
-The example above is taken from the [github.com/Azure/terraform](https://github.com/Azure/terraform/tree/compliance-testing/examples/master) repository.
+---
 
-After checkout the repo ...
+## Installation
 
-```bash 
-cd ./terraform-testing/examples/compliance-testing/src
-```
-... we create a terraform planfile in `./src/ we going to test against.
+파이썬 3.x 이상이 필요하며, PyPi 패키지가 설치되어 있어야 합니다.
 
 ```bash
-cd src/ 
-terraform init 
-terraform validate 
-terraform plan -out tf.out 
-terraform apply -target=random_uuid.uuid
-docker pull eerkunt/terraform-compliance
+$ pip install terraform-compliance
+
+$ terraform-compliance -h
+terraform-compliance v1.3.34 initiated
+
+usage: terraform-compliance [-h] [--terraform [terraform_file]] --features feature directory --planfile plan_file [--quit-early] [--no-failure] [--silent]
+                            [--identity [ssh private key]] [--debug] [--version]
+
+BDD Test Framework for Hashicorp terraform
+
+options:
+  -h, --help            show this help message and exit
+  --terraform [terraform_file], -t [terraform_file]
+                        The absolute path to the terraform executable.
+  --features feature directory, -f feature directory
+                        Directory (or git repository with "git:" prefix) consists of BDD features
+  --planfile plan_file, -p plan_file
+                        Plan output file generated by Terraform
+  --quit-early, -q      Stops executing any more steps in a scenario on first failure.
+  --no-failure, -n      Skip all the tests that is failed, but giving proper failure message
+  --silent, -S          Do not output any scenarios, just write results or failures
+  --identity [ssh private key], -i [ssh private key]
+                        SSH Private key that will be use on git authentication.
+  --debug, -d           Turns on debugging mode
+  --version, -v         show program's version number and exit
 ```
 
-Now we are ready to run the tests suite.
+Docker container image도 제공되고 있어 아래의 명령으로 컨테이너를 다운로드 받을 수 있습니다.
 
-```bash 
-docker run --rm -v $PWD:/target -it eerkunt/terraform-compliance -f features -p tf.out
+```bash
+$ docker pull eerkunt/terraform-compliance
 ```
 
-### From Red to Green
+---
 
-This should result in a failing test run. We see our first rule of requiring existence of tags suceed but we don't comply with the full spec of tags: `Role` and `Creator` tags are missing:
+## Using terraform compliance
 
-![tf-compliance-run-tagging-fail](assets/tf-compliance-run-tagging-fail.png)
+아래 테라폼 코드를 사용하여 AWS S3 Bucket을 생성하고 태그이름을 설정합니다.
 
-Make the test green again by adding all required tags to `main.tf`:
+```yaml
+provider "aws" {
+  region              = var.region
+  allowed_account_ids = var.account_id
+  profile             = "default"
+}
 
-```hcl 
+variable "region" {
+  description = "AWS Region"
+  type        = string
+  default     = "ap-northeast-2"
+}
+
+variable "account_id" {
+  description = "List of Allowed AWS account IDs"
+  type        = list(string)
+  default     = ["1234567890"]
+}
+
+variable "bucket" {
+  description = "S3 bucket for terraform-state-backend"
+  type        = string
+  default     = "tf101-state-backend"
+}
+
+variable "s3_acl" {
+  description = "ACL of S3 Bucket"
+  type        = string
+  default     = "private"
+}
+
+resource "aws_s3_bucket" "terraform_state_backend" {
+  bucket = var.bucket
+
+  lifecycle {
+    prevent_destroy = false
+  }
+
   tags = {
-    Environment = "dev"
-    Application = "Azure Compliance"
-    Creator     = "Azure Compliance"
-    Role        = "Azure Compliance"
-  } 
+    Name = var.bucket
+  }
+}
 
+resource "aws_s3_bucket_acl" "terraform_state_backend_acl" {
+  bucket = aws_s3_bucket.terraform_state_backend.id
+  acl    = var.s3_acl
+}
+
+resource "aws_s3_bucket_versioning" "terraform_state_backend_versioning" {
+  bucket = aws_s3_bucket.terraform_state_backend.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_backend_encryption" {
+  bucket = aws_s3_bucket.terraform_state_backend.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      #kms_master_key_id = aws_kms_key.mykey.arn
+      #sse_algorithm     = "aws:kms"
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+output "s3_bucket_name" {
+  value = aws_s3_bucket.terraform_state_backend.bucket
+}
 ```
 
-Let's update the plan file again to reflect the updated state:
+### Step 1. terraform init
 
-```bash 
-terraform validate 
-terraform plan -out tf.out 
+```bash
+$ terraform fmt
+$ terraform init
+$ terraform validate
 ```
 
-Now, we should be green when running the tests suite again. We see our first rule of requiring existence of tags suceed and now we also provide the full spec of tags too:
+### Step 2. terraform plan
 
-![tf-compliance-run-tagging-succeed](assets/tf-compliance-run-tagging-succeed.png)
+```bash
+$ terraform plan -out=tfc.out
+$ terraform show -json plan.out > plan.out.json
+$ cat plan.out.json | jq
+```
 
+### Step 3. terraform-compliance
+
+```bash
+$ terraform-compliance -f compliance/ -p plan.json
+terraform-compliance v1.3.34 initiated
+
+🚩 Features     : /mnt/c/Users/이장재/Desktop/terraform/terraform-backend/compliance/
+🚩 Plan File    : /mnt/c/Users/이장재/Desktop/terraform/terraform-backend/plan.json
+
+🚩 Running tests. 🎉
+
+Feature: Check tags on the S3 resource  # /mnt/c/Users/이장재/Desktop/terraform/terraform-backend/compliance/s3.feature
+
+    Scenario: Ensure all resources have tags
+        Given I have resource that supports tags defined
+        Then it must contain tags
+        And its value must not be null
+
+    Scenario Outline: Ensure that specific tags are defined
+        Given I have aws_s3_bucket that supports tags defined
+        When it has tags
+        Then it must contain <tags>
+        And its value must not be null
+
+    Examples:
+        | tags |
+        💡 SKIPPING: Can not find aws_s3_bucket that supports tags defined in target terraform plan.
+        | Name |
+
+Feature: This is base for check basic of s3  # /mnt/c/Users/이장재/Desktop/terraform/terraform-backend/compliance/s3attr.feature
+
+    Scenario Outline: S3 resources must be configured
+        Given I have AWS S3 Bucket defined
+        Then it must contain <attributes>
+
+    Examples:
+        | attributes |
+        | tags       |
+
+Feature: Check if s3 bucket has encrypted  # /mnt/c/Users/이장재/Desktop/terraform/terraform-backend/compliance/s3encrypt.feature
+
+    Scenario: Ensure all S3 buckets are encrypted
+        Given I have aws_s3_bucket_server_side_encryption_configuration defined
+        When it has rule
+        Then it must contain sse_algorithm
+        And its value must contain AES256
+
+Feature: Check if s3 bucket has private  # /mnt/c/Users/이장재/Desktop/terraform/terraform-backend/compliance/s3private.feature
+
+    Scenario: Ensure all S3 buckets are private
+        Given I have aws_s3_bucket_acl defined
+        When it has acl
+        Then its value must contain private
+
+Feature: Test tagging compliance  # /mnt/c/Users/이장재/Desktop/terraform/terraform-backend/compliance/tagging.feature
+
+    Scenario: Ensure all resources have tags
+        Given I have resource that supports tags defined
+        Then it must contain tags
+        And its value must not be null
+
+    Scenario Outline: Ensure that specific tags are defined
+        Given I have resource that supports tags defined
+        When it has tags
+        Then it must contain <tags>
+        And its value must match the "<value>" regex
+
+    Examples:
+        | tags        | value            |
+        | Name        | .+               |
+                Failure: aws_dynamodb_table.terraform_state_locks (aws_dynamodb_table) does not have Environment property.
+                Failure: aws_s3_bucket.terraform_state_backend (aws_s3_bucket) does not have Environment property.
+        | Environment | ^(prod|uat|dev)$ |
+          Failure:
+
+5 features (3 passed, 1 failed, 1 skipped)
+8 scenarios (6 passed, 1 failed, 1 skipped)
+27 steps (21 passed, 1 failed, 2 skipped)
+Run 1668277974 finished within a moment
+ (TF:default)(⎈ |rancher-desktop:default)
+```
+
+## Step 4. terraform apply
+
+```bash
+$ terraform apply
+```
+
+---
+
+## Official Website
+
+- Website
+    - [https://terraform-compliance.com/](https://terraform-compliance.com/)
+- GitHub
+    - [https://github.com/terraform-compliance/cli](https://github.com/terraform-compliance/cli)
+- PyPI
+    - [https://pypi.org/project/terraform-compliance/](https://pypi.org/project/terraform-compliance/)
+
+---
+
+## Reference
+
+- **[Implement compliance testing with Terraform and Azure](https://learn.microsoft.com/en-us/azure/developer/terraform/best-practices-compliance-testing)**
+- **[Trusting in your IaC -Terraform-Compliance](https://dev.to/aws-builders/trusting-in-your-iac-terraform-compliance-4cch)**
+- ****[Terraform Compliance, starting](https://medium.com/@agferronato/terraform-compliance-starting-cbb368e65dc6)****
+- ****[Announcing policy guardrails for Terraform on Google Cloud CLI preview](https://cloud.google.com/blog/products/compliance/google-cloud-cli-terraform-validation-preview?hl=en)****
+- ****[Enforce Policy with Sentinel](https://developer.hashicorp.com/terraform/tutorials/policy)****
+- [**TFLint**](https://github.com/terraform-linters/tflint)
+- [**Terraform Security Checks - aqua tfsec**](https://aquasecurity.github.io/tfsec/)
+- ****[How to test Terraform compliance using the Open Policy Agent (OPA)](https://youtu.be/fgiMk9EbNXU)****
+- **Terraform Test Framework [[Web]](https://tf2project.io/) [[GitHub]](https://github.com/tf2project/tf2project)**
+- [**radish-BDD - python BDD tool**](http://radish-bdd.io/)
+- **[Gherkin Reference](https://cucumber.io/docs/gherkin/reference/)**
+- [**https://playbook.hackney.gov.uk/API-Playbook/terraform_compliance**](https://playbook.hackney.gov.uk/API-Playbook/terraform_compliance)
+
+---
+
+**END**
