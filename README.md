@@ -209,7 +209,7 @@ $ cat plan.out.json | jq
 ### Step 3. terraform-compliance
 
 ```bash
-$ terraform-compliance -f compliance/ -p plan.json
+$ terraform-compliance -f compliance/ -p plan.out.json
 terraform-compliance v1.3.34 initiated
 
 🚩 Features     : /mnt/c/Users/이장재/Desktop/terraform/terraform-backend/compliance/
