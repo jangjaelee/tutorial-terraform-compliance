@@ -201,7 +201,7 @@ $ terraform validate
 ### Step 2. terraform plan
 
 ```bash
-$ terraform plan -out=tfc.out
+$ terraform plan -out=plan.out
 $ terraform show -json plan.out > plan.out.json
 $ cat plan.out.json | jq
 ```
