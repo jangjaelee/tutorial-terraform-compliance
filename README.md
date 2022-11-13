@@ -317,7 +317,6 @@ $ terraform apply
 - **Terraform Test Framework [[Web]](https://tf2project.io/) [[GitHub]](https://github.com/tf2project/tf2project)**
 - [**radish-BDD - python BDD tool**](http://radish-bdd.io/)
 - **[Gherkin Reference](https://cucumber.io/docs/gherkin/reference/)**
-- [**https://playbook.hackney.gov.uk/API-Playbook/terraform_compliance**](https://playbook.hackney.gov.uk/API-Playbook/terraform_compliance)
 
 ---
 
